@@ -7,6 +7,9 @@ export const HeroSection = () => {
     const [currentCharIndex, setCurrentCharIndex] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
     const lines = [
         "Web Developer",
@@ -42,6 +45,40 @@ export const HeroSection = () => {
         }
     }, [currentCharIndex, currentLineIndex, isDeleting, lines]);
 
+    const handleMouseDown = (e) => {
+        setIsDragging(true);
+        setDragStart({
+            x: e.clientX - position.x,
+            y: e.clientY - position.y
+        });
+    };
+
+    const handleMouseMove = (e) => {
+        if (isDragging) {
+            setPosition({
+                x: e.clientX - dragStart.x,
+                y: e.clientY - dragStart.y
+            });
+        }
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+        // Smooth return to original position
+        setPosition({ x: 0, y: 0 });
+    };
+
+    useEffect(() => {
+        if (isDragging) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+        }
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isDragging, dragStart]);
+
     return (
         <>
             <style>{`
@@ -57,6 +94,77 @@ export const HeroSection = () => {
                     30% { transform: translateX(-5px) rotate(-2deg); }
                     40% { transform: translateX(5px) rotate(2deg); }
                     50% { transform: translateX(0) rotate(0deg); }
+                }
+                
+                @keyframes float {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-20px); }
+                }
+                
+                .profile-image-container {
+                    position: relative;
+                    width: 200px;
+                    height: 200px;
+                    margin: 0 auto 2rem;
+                    cursor: grab;
+                    transition: transform 0.5s ease-out;
+                }
+                
+                .profile-image-container.dragging {
+                    cursor: grabbing;
+                    transition: none;
+                }
+                
+                .profile-image-container:not(.dragging) {
+                    animation: float 3s ease-in-out infinite;
+                }
+                
+                .profile-image {
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    border: 4px solid;
+                    border-color: #44444E;
+                    box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+                }
+                
+                .status-badge {
+                    position: absolute;
+                    top: -10px;
+                    left: -10px;
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
+                
+                .experience-badge {
+                    position: absolute;
+                    bottom: -10px;
+                    right: -10px;
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
+                
+                .experience-dot {
+                    width: 8px;
+                    height: 8px;
+                    background: #00ff00;
+                    border-radius: 50%;
                 }
                 
                 .name-dance {
@@ -131,6 +239,27 @@ export const HeroSection = () => {
             >
                 <div className="container max-w-4xl mx-auto text-center z-10">
                     <div className="space-y-6">
+                        {/* Profile Image with Badges */}
+                        <div 
+                            className={`profile-image-container ${isDragging ? 'dragging' : ''}`}
+                            style={{
+                                transform: `translate(${position.x}px, ${position.y}px)`
+                            }}
+                            onMouseDown={handleMouseDown}
+                        >
+                            <div className="status-badge">Available for work</div>
+                            <img 
+                                src="../public/Shivraj_Patil_PFP1.jpeg" 
+                                alt="Profile"
+                                className="profile-image"
+                                draggable="false"
+                            />
+                            <div className="experience-badge">
+                                <span className="experience-dot"></span>
+                                2+ Years of Experience
+                            </div>
+                        </div>
+
                         <h1 className="text-4xl md:text-6xl font-bold tracking-tight"
                             onMouseEnter={() => setIsHovering(true)}
                             onMouseLeave={() => setIsHovering(false)}
@@ -158,7 +287,9 @@ export const HeroSection = () => {
                         </h1>
 
                         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto opacity-0 animate-fade-in-delay-3">
-                            I build modern web applications and AI-powered automations that turn complex problems into simple, usable solutions.
+                            I create stellar web experiences with modern technologies.
+                            Specializing in front-end development, I build interfaces that are
+                            both beautiful and functional.
                         </p>
 
                         {/* Terminal Typing Animation */}
